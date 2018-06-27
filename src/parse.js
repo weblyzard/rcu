@@ -1,5 +1,6 @@
 import { match } from 'tippex';
 import { Ractive } from './init.js';
+
 import getName from './getName.js';
 import getLinePosition from './utils/getLinePosition.js';
 
@@ -12,13 +13,14 @@ export default function parse ( source, parseOptions, typeAttrs, identifier, ver
 		throw new Error( 'rcu has not been initialised! You must call rcu.init(Ractive) before rcu.parse()' );
 	}
 
+	if (!parseOptions) parseOptions = {};
 
 	let fromCache = getFromCache(source, identifier);
 
 	const parsed = fromCache || Ractive.parse( source, Object.assign( {
 		noStringify: true,
 		interpolate: { script: false, style: false }
-	}, parseOptions || {}, { includeLinePositions: true } ) );
+	}, parseOptions, { includeLinePositions: true } ) );
 
 	if (fromCache === undefined) {
 		registerCache(source, parsed, identifier, versionSuffix);
@@ -48,15 +50,31 @@ export default function parse ( source, parseOptions, typeAttrs, identifier, ver
 			}
 
 			attr = getAttr( 'type', item );
-			if ( item.e === 'script' && ( !attr || attr === ( typeAttrs && typeAttrs.js ? typeAttrs.js : 'text/javascript' ) ) ) {
+			if ( item.e === 'script') {
 				if ( scriptItem ) {
 					throw new Error( 'You can only have one <script> tag per component file' );
 				}
-				scriptItem = template.splice( i, 1 )[0];
+				if ( !attr || attr === ( typeAttrs && typeAttrs.js ? typeAttrs.js : 'text/javascript' ) ) {
+					scriptItem = template.splice( i, 1 )[0];
+				} else {
+					let process = parseOptions.processors && parseOptions.processors[attr];
+					if (process) {
+						scriptItem = process( template.splice( i, 1 )[0] );
+					}
+				}
 			}
 
-			if ( item.e === 'style' && ( !attr || attr === ( typeAttrs && typeAttrs.css ? typeAttrs.css : 'text/css' ) ) ) {
-				styles.push( template.splice( i, 1 )[0] );
+			if ( item.e === 'style') {
+				if ( !attr || attr === ( typeAttrs && typeAttrs.css ? typeAttrs.css : 'text/css' ) ) {
+					styles.push( template.splice( i, 1 )[0] );
+				} else {
+					let process = parseOptions.processors && parseOptions.processors[attr];
+					if (process) {
+						let templatePart = template.splice( i, 1 )[0];
+						templatePart.f[0] = process( templatePart.f[0] );
+						styles.push( templatePart );
+					}
+				}
 			}
 		}
 	}
