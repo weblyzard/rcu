@@ -70,9 +70,7 @@ export default function parse ( source, parseOptions, typeAttrs, identifier, ver
 				} else {
 					let process = parseOptions.processors && parseOptions.processors[attr];
 					if (process) {
-						let templatePart = template.splice( i, 1 )[0];
-						templatePart.f[0] = process( templatePart.f[0] );
-						styles.push( templatePart );
+						styles.push( process( template.splice( i, 1 )[0] ) );
 					}
 				}
 			}
