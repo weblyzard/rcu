@@ -58,9 +58,7 @@ export default function parse ( source, parseOptions, typeAttrs, identifier, ver
 					scriptItem = template.splice( i, 1 )[0];
 				} else {
 					let process = parseOptions.processors && parseOptions.processors[attr];
-					if (process) {
-						scriptItem = process( template.splice( i, 1 )[0] );
-					}
+					if (process) scriptItem = process( template.splice( i, 1 )[0] );
 				}
 			}
 
@@ -69,9 +67,7 @@ export default function parse ( source, parseOptions, typeAttrs, identifier, ver
 					styles.push( template.splice( i, 1 )[0] );
 				} else {
 					let process = parseOptions.processors && parseOptions.processors[attr];
-					if (process) {
-						styles.push( process( template.splice( i, 1 )[0] ) );
-					}
+					if (process) styles.push( process( template.splice( i, 1 )[0] ) );
 				}
 			}
 		}
