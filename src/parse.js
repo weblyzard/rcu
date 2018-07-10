@@ -99,6 +99,22 @@ export default function parse ( source, parseOptions, typeAttrs, identifier, ver
 		script: ''
 	};
 
+	// This is true on build only
+	if (require.nodeRequire) {
+		const lessConfig = {
+			optimizeCss: true,
+			strictMath: true,
+			syncImport: true
+		};
+
+		const lessc = require.nodeRequire('less');
+
+		lessc.render(result.css, lessConfig, (error, _result) => {
+			if (error) return console.error(error); // eslint-disable-line no-console
+			result.css = _result.css;
+		});
+	}
+
 	if (identifier) {
 		result._componentPath = identifier;
 	}

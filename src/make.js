@@ -18,6 +18,8 @@ export default function make ( source, config, callback, errback ) {
 
 	let imports = {};
 
+	// FIXME: re-integrate
+	/*
 	function cssContainsRactiveDelimiters (cssDefinition) {
 		//TODO: this can use Ractive's default delimiter definitions, and perhaps a single REGEX for match
 		return cssDefinition
@@ -37,13 +39,15 @@ export default function make ( source, config, callback, errback ) {
 			return definition.css;
 		}
 	}
+	*/
 
 	function createComponent () {
 		let options = {
 			template: definition.template,
 			partials: definition.partials,
 			_componentPath: definition._componentPath,
-			css: determineCss(definition.css),
+			css: data => { return data('*'); },
+			cssData: { '*': definition.css },
 			components: imports
 		};
 
@@ -72,16 +76,34 @@ export default function make ( source, config, callback, errback ) {
 					}
 				}
 
-				Component = Ractive.extend( options );
 			} catch ( err ) {
 				errback( err );
 				return;
 			}
+		}
 
-			callback( Component );
-		} else {
-			Component = Ractive.extend( options );
-			callback( Component );
+		Component = Ractive.extend( options );
+		callback( Component );
+
+		if (definition.css) {
+			const lessConfig = {
+				optimizeCss: true,
+				strictMath: true,
+				syncImport: true
+			};
+
+			const compileLess = lessc => {
+				lessc.render(definition.css, lessConfig, (error, result) => {
+					if (error) return console.error(error); // eslint-disable-line no-console
+					Component.styleSet('*', result.css);
+				});
+			}
+
+			if (typeof lessc === 'undefined') {
+				require(['lessc'], compileLess);
+			} else {
+				compileLess(lessc); // eslint-disable-line no-undef
+			}
 		}
 	}
 
