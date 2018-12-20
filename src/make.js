@@ -97,12 +97,14 @@ export default function make ( source, config, callback, errback ) {
 					if (error) return console.error(error); // eslint-disable-line no-console
 					Component.styleSet('*', result.css);
 				});
-			}
+			};
 
-			if (typeof lessc === 'undefined') {
-				require(['lessc'], compileLess);
-			} else {
+			if (typeof less !== 'undefined') {
+				compileLess(less); // eslint-disable-line no-undef
+			} else if (typeof lessc !== 'undefined') {
 				compileLess(lessc); // eslint-disable-line no-undef
+			} else {
+				console.warn('Could not find LESS compiler for Ractive components'); // eslint-disable-line no-console
 			}
 		}
 	}
